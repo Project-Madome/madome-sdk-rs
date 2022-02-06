@@ -77,6 +77,7 @@ impl Error {
     }
 }
 
+/// # Auth API
 pub struct Auth<'a> {
     base_url: &'a str,
 }

@@ -2,6 +2,7 @@ pub struct User<'a> {
     base_url: &'a str,
 }
 
+/// # User API
 impl<'a> User<'a> {
     pub fn new(base_url: &'a str) -> Self {
         Self { base_url }
