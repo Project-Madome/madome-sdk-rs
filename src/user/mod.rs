@@ -69,8 +69,9 @@ impl<'a> User<'a> {
     ///     * Content-Type: `application/json`
     ///     * Content:
     ///         ```json
-    ///         { "name": "madome",
-    ///         , "email": "user@madome.app" }
+    ///         { "name": "madome" // between 1 ~ 20
+    ///         , "email": "user@madome.app" // email
+    ///         , "role": 0 } // default = 0, between 0 ~ 1
     ///         ```
     ///
     /// * Success Response
@@ -78,6 +79,9 @@ impl<'a> User<'a> {
     ///     * StatusCode: `201`
     ///
     /// * Error Response
+    ///
+    ///     * StatusCode: `400`
+    ///         * Reason: 잘못된 요청입니다. `Parameter`를 확인해주세요.
     ///
     ///     * StatusCode: `409`
     ///         * Reason: 이미 존재하는 유저입니다.
@@ -91,5 +95,5 @@ impl<'a> User<'a> {
     ///     -d '{ "name": "madome", "email": "user@madome.app" }'
     ///     /users
     ///     ```
-    pub async fn create_user(&self, user_name: &str, user_email: &str) {}
+    pub async fn create_user(&self, user_name: &str, user_email: &str, role: Option<u8>) {}
 }
