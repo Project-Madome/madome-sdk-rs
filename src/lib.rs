@@ -1,15 +1,6 @@
-//! # Madome API
-//!
-//! ## Auth
-//! [AuthAPI]
-//!
-//! ## User
-//! [UserAPI]
+pub mod api;
 
-pub mod auth;
-pub mod user;
-
-/// Auth API
-pub use auth::Auth as AuthAPI;
-/// User API
-pub use user::User as UserAPI;
+#[cfg(feature = "client")]
+mod client;
+#[cfg(feature = "client")]
+pub use client::MadomeClient;
