@@ -10,6 +10,9 @@ pub(crate) mod prelude {
     pub(crate) use reqwest::{Request, Response};
     pub(crate) use serde::{Deserialize, Serialize};
 
+    #[cfg(feature = "client")]
+    pub(crate) use madome_sdk_macros::impl_into_args;
+
     pub(crate) use super::error::BaseError;
     pub(crate) use super::macros::*;
     pub(crate) use super::token::Token;
@@ -73,11 +76,13 @@ where
     Ok(req)
 }
 
+#[allow(unused_variables)]
 pub(crate) fn response<T, E, F, Fut>(token: Token, resp: Response, f: F) -> Fut
 where
     F: Fn(Response) -> Fut,
     Fut: Future<Output = Result<T, E>>,
 {
+    #[cfg(feature = "client")]
     token.update(resp.headers());
 
     f(resp)

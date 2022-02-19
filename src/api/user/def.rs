@@ -11,16 +11,10 @@ define_request! {
     Json,
     [name: String, email: String, role: Option<u8>],
     [
-        #[error("Bad Request: {0}")]
-        BadRequest(String),
         #[error("Conflict")]
         Conflict,
     ],
     [
-        StatusCode::BAD_REQUEST => |resp: Response| async {
-            let body = resp.text().await.unwrap_or_default();
-            Error::BadRequest(body)
-        },
         StatusCode::CONFLICT => |_resp: Response| async {
             Error::Conflict
         }
@@ -57,17 +51,11 @@ define_request! {
     Querystring,
     [
         kind: Option<payload::LikeKind>,
-        per_page: usize, page: usize,
+        per_page: usize,
+        page: usize,
         sort_by: Option<payload::LikeSortBy>],
-    [
-        #[error("Not Found")]
-        NotFound,
-    ],
-    [
-        StatusCode::BAD_REQUEST => |_resp: Response| async {
-            Error::NotFound
-        }
-    ],
+    [],
+    [],
     StatusCode::OK => Vec<model::Like>
 }
 

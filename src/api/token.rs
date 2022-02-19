@@ -1,14 +1,13 @@
-use http::HeaderMap;
 use util::http::Cookie;
 
-use crate::{
-    api::auth::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN},
-    client::store::AuthStore,
-};
+use crate::api::auth::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
 
 pub enum Token<'a> {
     Origin((String, String)),
-    Store(&'a AuthStore),
+    #[cfg(feature = "client")]
+    Store(&'a crate::client::store::AuthStore),
+
+    Holder(&'a str),
 }
 
 impl Token<'_> {
@@ -18,11 +17,14 @@ impl Token<'_> {
                 (MADOME_ACCESS_TOKEN, access.as_str()),
                 (MADOME_REFRESH_TOKEN, refresh.as_str()),
             ]),
+            #[cfg(feature = "client")]
             Self::Store(x) => x.as_cookie(),
+            Self::Holder(_) => unreachable!(),
         }
     }
 
-    pub fn update(&self, headers: &HeaderMap) {
+    #[cfg(feature = "client")]
+    pub fn update(&self, headers: &http::HeaderMap) {
         if let Self::Store(x) = self {
             x.update(headers);
         }
@@ -53,8 +55,9 @@ impl From<(&'_ str, &'_ str)> for Token<'_> {
     }
 }
 
-impl<'a> From<&'a AuthStore> for Token<'a> {
-    fn from(x: &'a AuthStore) -> Self {
+#[cfg(feature = "client")]
+impl<'a> From<&'a crate::client::store::AuthStore> for Token<'a> {
+    fn from(x: &'a crate::client::store::AuthStore) -> Self {
         Self::Store(x)
     }
 }

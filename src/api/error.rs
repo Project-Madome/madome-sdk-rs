@@ -3,6 +3,9 @@ use reqwest::Response;
 
 #[derive(Debug, thiserror::Error)]
 pub enum BaseError {
+    #[error("Bad Request: {0}")]
+    BadRequest(String),
+
     #[error("Unauthoirzed")]
     Unauthorized,
 
@@ -32,6 +35,10 @@ impl BaseError {
         E: From<BaseError>,
     {
         match code {
+            StatusCode::BAD_REQUEST => {
+                let msg = resp.text().await.unwrap_or_default();
+                BaseError::BadRequest(msg)
+            }
             StatusCode::UNAUTHORIZED => BaseError::Unauthorized,
             StatusCode::FORBIDDEN => BaseError::PermissionDenied,
             code => {

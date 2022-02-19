@@ -21,6 +21,7 @@ util = { git = "https://github.com/syrflover/util-rs", tag = "0.1.5" }
 parking_lot = "0.12"
 log = "0.4"
 serde_qs = "0.8"
+madome-sdk-macros = { path = "./madome-sdk-macros" }
 
 [dev-dependencies]
 tokio = { version = "1.17", features = ["macros"] }

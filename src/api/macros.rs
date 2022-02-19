@@ -14,16 +14,19 @@ macro_rules! extend_error {
 
 pub(crate) use extend_error;
 
+#[cfg(feature = "client")]
 macro_rules! impl_namespace {
     ($namespace:ident, $fn:ident, [$(($arg_id:ident: $arg_ty:ty)),*$(,)?], $ret_ty:ty) => {
         impl $crate::client::$namespace<'_> {
-            pub async fn $fn(self, $($arg_id: impl Into<$arg_ty>),*) -> Result<$ret_ty, $crate::api::$namespace::error::Error> {
+            #[impl_into_args]
+            pub async fn $fn(self, $($arg_id: $arg_ty),*) -> Result<$ret_ty, $crate::api::$namespace::error::Error> {
                 $fn(&self.base_url, self.token, $($arg_id.into()),*).await
             }
         }
     };
 }
 
+#[cfg(feature = "client")]
 pub(crate) use impl_namespace;
 
 macro_rules! define_request {
@@ -36,6 +39,7 @@ macro_rules! define_request {
     [$($err_code:path => $err:expr),*$(,)?],
     $ok_code:path => $ret_ty:ty) =>
         {
+        #[cfg(feature = "client")]
         impl_namespace!($namespace, $fn, [$(($arg_id: $arg_ty)),*], $ret_ty);
 
         pub async fn $fn(base_url: &str, token: impl Into<Token<'_>>, $($arg_id: $arg_ty),*) -> Result<$ret_ty, $crate::api::$namespace::error::Error> {
