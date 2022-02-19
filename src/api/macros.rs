@@ -66,7 +66,7 @@ macro_rules! define_request {
     };
 
     (@def_qs [$($arg_id:ident, $arg_ty:ty),*$(,)?]) => {
-        #[derive(serde::Serialize)]
+        #[derive(Debug, ::serde::Serialize)]
         #[serde(rename_all = "kebab-case")]
         pub(crate) struct QuerystringParameters {
             $(
@@ -82,7 +82,7 @@ macro_rules! define_request {
     };
 
     (@def_json [$($arg_id:ident, $arg_ty:ty),*$(,)?]) => {
-        #[derive(serde::Serialize)]
+        #[derive(Debug, ::serde::Serialize)]
         #[serde(rename_all = "snake_case")]
         pub(crate) struct JsonParameters {
             $(
@@ -115,10 +115,12 @@ macro_rules! define_request {
             let req = match $parameter_kind {
                 ParameterKind::Querystring => {
                     let parameter = qs_parameters($($arg_id,)*);
+                    ::log::debug!("qs_parameter = {parameter:?}");
                     request($method, base_url, $path, &token, $parameter_kind, Some(parameter))
                 },
                 ParameterKind::Json => {
                     let parameter = json_parameters($($arg_id,)*);
+                    ::log::debug!("json_parameter = {parameter:?}");
                     request($method, base_url, $path, &token, $parameter_kind, Some(parameter))
                 },
                 ParameterKind::Nothing => {
@@ -134,7 +136,28 @@ macro_rules! define_request {
             response(token, resp, |resp| async {
                 match resp.status() {
                     $ok_code => {
-                        define_request!(@def_resp resp, $ret_ty)
+                        #[ret_ty_or_unit]
+                        #[allow(unused_variables)]
+                        async fn deserialize(resp: Response) -> Result<$ret_ty, BaseError> {
+                            let buf = resp
+                                .bytes()
+                                .await
+                                .unwrap_or_default();
+
+                            // ::log::debug!("deserializing...");
+
+                            #[cfg(debug_assertions)] {
+                                let buf: &[u8] = buf.as_ref();
+                                ::log::debug!("{}", String::from_utf8(buf.to_vec()).unwrap());
+                            }
+
+                            let deserialized = serde_json::from_slice(&buf)
+                                .map_err(BaseError::JsonDeserialize)?;
+
+                            Ok(deserialized)
+                        }
+
+                        Ok(deserialize(resp).await?)
                     }
 
                     $($err_code => {
@@ -147,20 +170,6 @@ macro_rules! define_request {
                 }
             })
             .await
-        }
-    };
-
-    (@def_resp $resp:expr, ()) => {
-        { Ok(()) }
-    };
-
-    (@def_resp $resp:expr, $ret_ty:ty) => {
-        {
-            let buf = $resp.bytes().await.unwrap_or_default();
-            let deserialized = serde_json::from_slice(&buf)
-                .map_err(BaseError::JsonDeserialize)?;
-
-            Ok(deserialized)
         }
     };
 }

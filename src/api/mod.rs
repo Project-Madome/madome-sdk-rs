@@ -12,6 +12,8 @@ pub(crate) mod prelude {
 
     #[cfg(feature = "client")]
     pub(crate) use madome_sdk_macros::impl_into_args;
+    #[cfg(feature = "client")]
+    pub(crate) use madome_sdk_macros::ret_ty_or_unit;
 
     pub(crate) use super::error::BaseError;
     pub(crate) use super::macros::*;
@@ -29,7 +31,7 @@ pub(crate) mod prelude {
 
 use std::future::Future;
 
-use http::Method;
+use http::{header, Method};
 use reqwest::{Client, RequestBuilder, Response};
 use serde::Serialize;
 
@@ -55,19 +57,29 @@ where
 {
     let (key, value) = token.as_cookie().into();
 
-    let url = format!("{base_url}/{url}");
+    let url = format!("{base_url}{url}");
 
     let req = Client::new();
     let req = match parameter_kind {
         ParameterKind::Querystring => {
             let qs = serde_qs::to_string(parameter.as_ref().unwrap())
                 .map_err(BaseError::QuerystringSerialize)?;
+            log::debug!("serialized_parameter = {qs}");
             req.request(method, format!("{url}?{qs}"))
         }
         ParameterKind::Json => {
             let json = serde_json::to_vec(parameter.as_ref().unwrap())
                 .map_err(BaseError::JsonSerialize)?;
-            req.request(method, url).body(json)
+            #[cfg(debug_assertions)]
+            {
+                log::debug!(
+                    "serialized_parameter = {}",
+                    String::from_utf8(json.clone()).unwrap()
+                );
+            }
+            req.request(method, url)
+                .header(header::CONTENT_TYPE, "application/json")
+                .body(json)
         }
         ParameterKind::Nothing => req.request(method, url),
     }

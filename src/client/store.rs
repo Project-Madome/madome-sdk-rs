@@ -67,9 +67,9 @@ impl AuthStore {
                     // unlocked here
                 }
 
-                log::debug!("token updated");
+                log::debug!("token updated = true");
             }
-            _ => log::debug!("token not updated"),
+            _ => log::debug!("token updated = false"),
         }
     }
 }

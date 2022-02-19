@@ -23,7 +23,7 @@ impl MadomeBaseUrl {
     }
 
     pub fn nightly() -> Self {
-        let base_url = "https://nightly.api.madome.app".to_string();
+        let base_url = "https://test.api.madome.app".to_string();
 
         Self {
             auth: base_url.clone(),

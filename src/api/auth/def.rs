@@ -5,7 +5,7 @@ use super::model::UserId;
 define_request! {
     auth,
     create_authcode,
-    (GET, "/auth/code"),
+    (POST, "/auth/code"),
     Json,
     [email: String],
     [
