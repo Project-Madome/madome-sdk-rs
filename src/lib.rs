@@ -4,3 +4,6 @@ pub mod api;
 mod client;
 #[cfg(feature = "client")]
 pub use client::MadomeClient;
+
+#[cfg(test)]
+mod tests;

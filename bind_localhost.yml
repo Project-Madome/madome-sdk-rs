@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Endpoints
+metadata:
+    name: madome-e2e
+subsets:
+    - addresses:
+          - ip: "192.168.1.30"
+      ports:
+          - port: 31111
+            name: test1
+          - port: 31112
+            name: test2
+          - port: 31113
+            name: test3
+          - port: 31114
+            name: test4
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: madome-e2e
+spec:
+    ports:
+        - port: 31111
+          targetPort: 31111
+          name: test1
+        - port: 31112
+          targetPort: 31112
+          name: test2
+        - port: 31113
+          targetPort: 31113
+          name: test3
+        - port: 31114
+          targetPort: 31114
+          name: test4
