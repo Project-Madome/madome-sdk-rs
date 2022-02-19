@@ -5,14 +5,13 @@ mod token;
 pub mod auth;
 pub mod user;
 
-#[allow(unused_imports)]
+#[allow(unused_imports, dead_code)]
 pub(crate) mod prelude {
     pub(crate) use reqwest::{Request, Response};
     pub(crate) use serde::{Deserialize, Serialize};
 
     #[cfg(feature = "client")]
     pub(crate) use madome_sdk_macros::impl_into_args;
-    #[cfg(feature = "client")]
     pub(crate) use madome_sdk_macros::ret_ty_or_unit;
 
     pub(crate) use super::error::BaseError;
@@ -25,6 +24,7 @@ pub(crate) mod prelude {
 
     pub(crate) const GET: Method = Method::GET;
     pub(crate) const POST: Method = Method::POST;
+    pub(crate) const PUT: Method = Method::PUT;
     pub(crate) const PATCH: Method = Method::PATCH;
     pub(crate) const DELETE: Method = Method::DELETE;
 }

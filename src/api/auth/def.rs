@@ -14,7 +14,14 @@ define_request! {
         #[error("Too Many Created Authcode")]
         TooManyCreatedAuthcode
     ],
-    [],
+    [
+        StatusCode::NOT_FOUND => |_resp: Response| async {
+            Error::NotFoundUser
+        },
+        StatusCode::TOO_MANY_REQUESTS => |_resp: Response| async {
+            Error::TooManyCreatedAuthcode
+        },
+    ],
     StatusCode::CREATED => ()
 }
 

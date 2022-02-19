@@ -163,7 +163,7 @@ macro_rules! define_request {
                     $($err_code => {
                         use self::Error;
 
-                        Err(<$crate::api::$namespace::Error>::from($err(resp).await))
+                        Err(<$crate::api::$namespace::error::Error>::from($err(resp).await))
                     },)*
 
                     code => Err(BaseError::from_status(code, resp).await),
