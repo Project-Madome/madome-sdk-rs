@@ -166,6 +166,7 @@ pub fn ret_ty_or_unit(_attr: TokenStream, item: TokenStream) -> TokenStream {
                 ReturnType::Type(_r, ty) => (is_unit_ty(&ty), is_result_unit_ty(&ty)),
             };
 
+            // TODO: is_option_unit
             let block = match (is_unit, is_result_unit) {
                 (true, _) => Box::new(Block {
                     stmts: vec![],

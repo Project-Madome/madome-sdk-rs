@@ -3,7 +3,7 @@ macro_rules! extend_error {
         #[derive(Debug, thiserror::Error)]
         pub enum Error {
             #[error("{0}")]
-            Base(#[from] $crate::api::BaseError),
+            Base(#[from] $crate::api::error::BaseError),
 
             $(
                 $member

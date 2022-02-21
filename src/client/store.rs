@@ -2,7 +2,7 @@ use http::HeaderMap;
 use parking_lot::RwLock;
 use util::http::{Cookie, SetCookie};
 
-use crate::api::auth::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
+use crate::api::header::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
 
 pub type TokenPair = (String, String);
 

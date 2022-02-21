@@ -1,6 +1,6 @@
 use util::http::Cookie;
 
-use crate::api::auth::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
+use crate::api::header::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
 
 pub enum Token<'a> {
     Origin((String, String)),

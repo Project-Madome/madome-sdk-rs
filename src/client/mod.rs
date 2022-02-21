@@ -131,7 +131,7 @@ pub mod tests {
                 .unwrap();
 
             if resp.status() != StatusCode::NO_CONTENT {
-                panic!("debug-madome is not normal")
+                panic!("e2e-channel is not normal")
             }
 
             let authcode = rx.await.unwrap();
@@ -141,9 +141,7 @@ pub mod tests {
     }
 
     pub fn available_port() -> u16 {
-        let ports = vec![31111, 31112, 31113, 31114];
-
-        for port in ports.into_iter().cycle() {
+        for port in [31111, 31112, 31113, 31114].into_iter().cycle() {
             let listener = std::net::TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], port)));
 
             if let Ok(_listener) = listener {

@@ -2,12 +2,6 @@ pub mod def;
 pub mod error;
 pub mod model;
 
-#[cfg(feature = "server")]
-pub const MADOME_PUBLIC_ACCESS_HEADER: &str = "x-madome-public-access";
-
-pub const MADOME_ACCESS_TOKEN: &str = "madome_access_token";
-pub const MADOME_REFRESH_TOKEN: &str = "madome_refresh_token";
-
 /* use http::{header, Method, StatusCode};
 use reqwest::Client;
 use util::http::{Cookie, SetCookie};
