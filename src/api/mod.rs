@@ -6,6 +6,8 @@ pub mod auth;
 pub mod header;
 pub mod user;
 
+pub use token::TokenBehavior;
+
 #[allow(unused_imports, dead_code)]
 pub(crate) mod prelude {
     pub(crate) use reqwest::{Request, Response};

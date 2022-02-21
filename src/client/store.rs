@@ -1,8 +1,10 @@
-use http::HeaderMap;
 use parking_lot::RwLock;
-use util::http::{Cookie, SetCookie};
+use util::http::Cookie;
 
-use crate::api::header::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
+use crate::api::{
+    header::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN},
+    TokenBehavior,
+};
 
 pub type TokenPair = (String, String);
 
@@ -39,25 +41,9 @@ pub struct AuthStore {
     token: RwLock<Option<TokenPair>>,
 }
 
-impl AuthStore {
-    pub fn as_cookie(&self) -> Cookie {
-        let (access, refresh) = { self.token.read().clone().unwrap_or_default() };
-
-        let cookie = [
-            (MADOME_ACCESS_TOKEN, access),
-            (MADOME_REFRESH_TOKEN, refresh),
-        ];
-
-        Cookie::from_iter(cookie)
-    }
-
-    pub fn update(&self, headers: &HeaderMap) {
-        let mut set_cookie = SetCookie::from_headers(headers);
-
-        let access_token = set_cookie.take(MADOME_ACCESS_TOKEN);
-        let refresh_token = set_cookie.take(MADOME_REFRESH_TOKEN);
-
-        match (access_token, refresh_token) {
+impl TokenBehavior for AuthStore {
+    fn update(&self, token_pair: (Option<String>, Option<String>)) {
+        match token_pair {
             (Some(access), Some(refresh)) => {
                 {
                     let mut token = self.token.write();
@@ -71,5 +57,16 @@ impl AuthStore {
             }
             _ => log::debug!("token updated = false"),
         }
+    }
+
+    fn as_cookie(&self) -> Cookie {
+        let (access, refresh) = { self.token.read().clone().unwrap_or_default() };
+
+        let cookie = [
+            (MADOME_ACCESS_TOKEN, access),
+            (MADOME_REFRESH_TOKEN, refresh),
+        ];
+
+        Cookie::from_iter(cookie)
     }
 }

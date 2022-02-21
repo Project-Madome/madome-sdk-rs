@@ -48,17 +48,10 @@ macro_rules! impl_madome_client {
             #[allow(incorrect_ident_case, non_camel_case_types)]
             pub struct $namespace<'a> {
                 pub(crate) base_url: &'a str,
-                pub(crate) token: &'a AuthStore,
+                pub(crate) token: &'a dyn $crate::api::TokenBehavior,
             }
         )*
-
-
-        /* impl<'a> $namespace<'a> {
-            $($(impl_namespace! { $namespace, $fn, [$($arg_id, $arg_ty)*], $ret_ty })*)*
-        } */
     };
-
-
 }
 
 impl_madome_client![user, auth];

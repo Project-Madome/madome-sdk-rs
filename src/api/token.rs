@@ -1,13 +1,17 @@
-use util::http::Cookie;
+use util::http::{Cookie, SetCookie};
 
 use crate::api::header::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
 
 pub enum Token<'a> {
     Origin((String, String)),
-    #[cfg(feature = "client")]
-    Store(&'a crate::client::store::AuthStore),
+    Store(&'a dyn TokenBehavior),
+}
 
-    Holder(&'a str),
+pub trait TokenBehavior {
+    fn update(&self, token_pair: (Option<String>, Option<String>));
+
+    #[cfg(feature = "client")]
+    fn as_cookie(&self) -> Cookie;
 }
 
 impl Token<'_> {
@@ -19,14 +23,17 @@ impl Token<'_> {
             ]),
             #[cfg(feature = "client")]
             Self::Store(x) => x.as_cookie(),
-            Self::Holder(_) => unreachable!(),
         }
     }
 
-    #[cfg(feature = "client")]
     pub fn update(&self, headers: &http::HeaderMap) {
         if let Self::Store(x) = self {
-            x.update(headers);
+            let mut set_cookie = SetCookie::from_headers(headers);
+
+            let access_token = set_cookie.take(MADOME_ACCESS_TOKEN);
+            let refresh_token = set_cookie.take(MADOME_REFRESH_TOKEN);
+
+            x.update((access_token, refresh_token));
         }
     }
 }
@@ -55,9 +62,8 @@ impl From<(&'_ str, &'_ str)> for Token<'_> {
     }
 }
 
-#[cfg(feature = "client")]
-impl<'a> From<&'a crate::client::store::AuthStore> for Token<'a> {
-    fn from(x: &'a crate::client::store::AuthStore) -> Self {
+impl<'a> From<&'a dyn TokenBehavior> for Token<'a> {
+    fn from(x: &'a dyn TokenBehavior) -> Self {
         Self::Store(x)
     }
 }

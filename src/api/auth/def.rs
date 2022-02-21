@@ -49,3 +49,14 @@ define_request! {
     [],
     StatusCode::OK => UserId
 }
+
+define_request! {
+    auth,
+    check_and_refresh_token_pair,
+    (PATCH, "/auth/token"),
+    Querystring,
+    [role: Option<u8>],
+    [],
+    [],
+    StatusCode::OK => UserId
+}
