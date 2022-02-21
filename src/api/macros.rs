@@ -20,7 +20,7 @@ macro_rules! impl_namespace {
         impl $crate::client::$namespace<'_> {
             #[impl_into_args]
             pub async fn $fn(self, $($arg_id: $arg_ty),*) -> Result<$ret_ty, $crate::api::$namespace::error::Error> {
-                $fn(&self.base_url, self.token, $($arg_id.into()),*).await
+                $fn(self.base_url.clone(), self.token, $($arg_id.into()),*).await
             }
         }
     };
@@ -42,8 +42,9 @@ macro_rules! define_request {
         #[cfg(feature = "client")]
         impl_namespace!($namespace, $fn, [$(($arg_id: $arg_ty)),*], $ret_ty);
 
-        pub async fn $fn(base_url: &str, token: impl Into<Token<'_>>, $($arg_id: $arg_ty),*) -> Result<$ret_ty, $crate::api::$namespace::error::Error> {
-            $fn::execute(base_url, token, $($arg_id),*).await
+        #[impl_into_args]
+        pub async fn $fn(base_url: impl Into<String>, token: impl Into<Token<'_>>, $($arg_id: $arg_ty),*) -> Result<$ret_ty, $crate::api::$namespace::error::Error> {
+            $fn::execute(base_url.into(), token.into(), $($arg_id.into()),*).await
         }
 
         pub mod $fn {
@@ -109,22 +110,20 @@ macro_rules! define_request {
         define_request!(@def_qs [$($arg_id, $arg_ty),*]);
         define_request!(@def_json [$($arg_id, $arg_ty),*]);
 
-        pub async fn execute(base_url: &str, token: impl Into<Token<'_>>, $($arg_id: $arg_ty),*) -> Result<$ret_ty, $crate::api::$namespace::error::Error> {
-            let token = token.into();
-
+        pub async fn execute(base_url: String, token: Token<'_>, $($arg_id: $arg_ty),*) -> Result<$ret_ty, $crate::api::$namespace::error::Error> {
             let req = match $parameter_kind {
                 ParameterKind::Querystring => {
                     let parameter = qs_parameters($($arg_id,)*);
                     ::log::debug!("qs_parameter = {parameter:?}");
-                    request($method, base_url, $path, &token, $parameter_kind, Some(parameter))
+                    request($method, &base_url, $path, &token, $parameter_kind, Some(parameter))
                 },
                 ParameterKind::Json => {
                     let parameter = json_parameters($($arg_id,)*);
                     ::log::debug!("json_parameter = {parameter:?}");
-                    request($method, base_url, $path, &token, $parameter_kind, Some(parameter))
+                    request($method, &base_url, $path, &token, $parameter_kind, Some(parameter))
                 },
                 ParameterKind::Nothing => {
-                    request($method, base_url, $path, &token, $parameter_kind, None::<()>)
+                    request($method, &base_url, $path, &token, $parameter_kind, None::<()>)
                 },
             }?;
 

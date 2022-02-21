@@ -11,7 +11,10 @@ async fn create_token() {
 
     let _r = client.auth().create_authcode(email).await.unwrap();
 
-    let code = client.e2e_channel("http://localhost:32148").authcode(email).await;
+    let code = client
+        .e2e_channel("http://localhost:32148")
+        .authcode(email)
+        .await;
 
     log::info!("code = {}", code.code);
 

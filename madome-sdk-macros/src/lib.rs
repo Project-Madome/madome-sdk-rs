@@ -23,6 +23,23 @@ fn is_num_ty(ty: &Type) -> bool {
     // matches!(ty, Type::Path(path) if is_num(&path.clone().into_token_stream().to_string()))
 }
 
+fn is_impl_into(ty: &Type) -> bool {
+    match ty {
+        Type::ImplTrait(impl_trait) => impl_trait.bounds.iter().any(|x| {
+            if let TypeParamBound::Trait(bounds) = x {
+                bounds
+                    .path
+                    .segments
+                    .iter()
+                    .any(|x| x.ident.clone().into_token_stream().to_string() == "Into")
+            } else {
+                false
+            }
+        }),
+        _ => false,
+    }
+}
+
 fn impl_into_ty(ty: &Type) -> Type {
     /* let ty_st = ty.into_token_stream().to_string();
 
@@ -30,25 +47,23 @@ fn impl_into_ty(ty: &Type) -> Type {
     println!("{ty_st}"); */
 
     // ty.clone()
-    let a = Type::ImplTrait(TypeImplTrait {
+    Type::ImplTrait(TypeImplTrait {
         impl_token: token::Impl::default(),
         bounds: Punctuated::from_iter([TypeParamBound::Trait(TraitBound {
-            paren_token: None,
-            modifier: TraitBoundModifier::None, // ?
+            paren_token: None,                  // (...)
+            modifier: TraitBoundModifier::None, // ? in ?Sized
             lifetimes: None,                    // 'a
             path: Path::from(PathSegment {
                 ident: Ident::new("Into", Span::call_site()),
                 arguments: PathArguments::AngleBracketed(AngleBracketedGenericArguments {
-                    colon2_token: None,
+                    colon2_token: None,             // ::
                     lt_token: token::Lt::default(), // <
                     gt_token: token::Gt::default(), // >
                     args: Punctuated::from_iter([GenericArgument::Type(ty.clone())]),
                 }),
             }),
         })]),
-    });
-
-    a
+    })
 }
 
 #[proc_macro_attribute]
@@ -61,9 +76,13 @@ pub fn impl_into_args(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
             let args = item_fn.sig.inputs.clone().into_iter().map(|x| match x {
                 FnArg::Typed(ref pt) => {
-                    let is_num = is_num_ty(&pt.ty);
+                    // println!("{}", pt.ty.clone().into_token_stream().to_string());
+                    // println!("{}", is_impl_into(&pt.ty));
 
-                    if is_num {
+                    let is_num = is_num_ty(&pt.ty);
+                    let is_into = is_impl_into(&pt.ty);
+
+                    if is_num || is_into {
                         x
                     } else {
                         let arg = FnArg::Typed(PatType {
@@ -75,6 +94,7 @@ pub fn impl_into_args(_attr: TokenStream, item: TokenStream) -> TokenStream {
                 }
                 _ => x,
             });
+
             let item_fn = ItemFn {
                 sig: Signature {
                     inputs: Punctuated::from_iter(args),

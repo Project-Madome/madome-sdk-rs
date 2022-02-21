@@ -51,7 +51,7 @@ mod http {
     pub(crate) fn request<T>(
         method: Method,
         base_url: &str,
-        url: &str,
+        path: &str,
         token: &Token,
         parameter_kind: ParameterKind,
         parameter: Option<T>,
@@ -61,7 +61,7 @@ mod http {
     {
         let (key, value) = token.as_cookie().into();
 
-        let url = format!("{base_url}{url}");
+        let url = format!("{base_url}{path}");
 
         let req = Client::new();
         let req = match parameter_kind {
