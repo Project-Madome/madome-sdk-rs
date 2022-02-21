@@ -2,16 +2,17 @@ use util::http::{Cookie, SetCookie};
 
 use crate::api::header::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
 
-pub enum Token<'a> {
-    Origin((String, String)),
-    Store(&'a dyn TokenBehavior),
-}
-
 pub trait TokenBehavior {
     fn update(&self, token_pair: (Option<String>, Option<String>));
 
-    #[cfg(feature = "client")]
-    fn as_cookie(&self) -> Cookie;
+    fn as_cookie(&self) -> Cookie {
+        Default::default()
+    }
+}
+
+pub enum Token<'a> {
+    Origin((String, String)),
+    Store(&'a dyn TokenBehavior),
 }
 
 impl Token<'_> {
@@ -21,7 +22,6 @@ impl Token<'_> {
                 (MADOME_ACCESS_TOKEN, access.as_str()),
                 (MADOME_REFRESH_TOKEN, refresh.as_str()),
             ]),
-            #[cfg(feature = "client")]
             Self::Store(x) => x.as_cookie(),
         }
     }

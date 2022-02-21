@@ -13,7 +13,6 @@ pub(crate) mod prelude {
     pub(crate) use reqwest::{Request, Response};
     pub(crate) use serde::{Deserialize, Serialize};
 
-    #[cfg(feature = "client")]
     pub(crate) use madome_sdk_macros::impl_into_args;
     pub(crate) use madome_sdk_macros::ret_ty_or_unit;
 
