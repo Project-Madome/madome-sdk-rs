@@ -7,6 +7,7 @@ pub mod header;
 pub mod old_library;
 pub mod user;
 
+pub use error::BaseError;
 pub use token::TokenBehavior;
 
 #[allow(unused_imports, dead_code)]
