@@ -72,49 +72,47 @@ impl<'a> From<&'a dyn TokenBehavior> for Token<'a> {
 }
 
 #[cfg(feature = "server")]
-use parking_lot::RwLock;
+mod server {
+    use hyper::Body;
+    use parking_lot::RwLock;
 
-#[cfg(feature = "server")]
-use http::Response;
-#[cfg(feature = "server")]
-use util::http::SetResponse;
+    use http::Response;
 
-#[cfg(feature = "server")]
-impl<T> TokenBehavior for RwLock<&mut Response<T>>
-where
-    T: Send + Sync,
-{
-    fn update(&self, token_pair: (Option<String>, Option<String>)) {
-        match token_pair {
-            (Some(access_token), Some(refresh_token)) => {
-                {
-                    let mut resp = self.write();
+    use util::http::{Cookie, SetResponse};
 
-                    resp.set_header(MADOME_ACCESS_TOKEN, access_token).unwrap();
-                    resp.set_header(MADOME_REFRESH_TOKEN, refresh_token)
-                        .unwrap();
+    use crate::api::header::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
 
-                    // droped here
+    use super::{Token, TokenBehavior};
+
+    impl TokenBehavior for RwLock<&mut Response<Body>> {
+        fn update(&self, token_pair: (Option<String>, Option<String>)) {
+            match token_pair {
+                (Some(access_token), Some(refresh_token)) => {
+                    {
+                        let mut resp = self.write();
+
+                        resp.set_header(MADOME_ACCESS_TOKEN, access_token).unwrap();
+                        resp.set_header(MADOME_REFRESH_TOKEN, refresh_token)
+                            .unwrap();
+
+                        // droped here
+                    }
+                    log::debug!("token updated = true");
                 }
-                log::debug!("token updated = true");
+                _ => log::debug!("token updated = false"),
             }
-            _ => log::debug!("token updated = false"),
+        }
+
+        // token pair 쿠키를 직접 수동으로 집어넣어줘야함
+        fn as_cookie(&self) -> Cookie {
+            let resp = self.read();
+            Cookie::from(resp.headers())
         }
     }
 
-    // token pair 쿠키를 직접 수동으로 집어넣어줘야함
-    fn as_cookie(&self) -> Cookie {
-        let resp = self.read();
-        Cookie::from(resp.headers())
-    }
-}
-
-#[cfg(feature = "server")]
-impl<'a, T> From<&'a RwLock<&'a mut Response<T>>> for Token<'a>
-where
-    T: Send + Sync,
-{
-    fn from(x: &'a RwLock<&'a mut Response<T>>) -> Self {
-        Self::Store(x)
+    impl<'a> From<&'a RwLock<&mut Response<Body>>> for Token<'a> {
+        fn from(x: &'a RwLock<&mut Response<Body>>) -> Self {
+            Self::Store(x)
+        }
     }
 }
