@@ -2,7 +2,7 @@ use util::http::{Cookie, SetCookie};
 
 use crate::api::header::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
 
-pub trait TokenBehavior {
+pub trait TokenBehavior: Send + Sync {
     /// use interior-mutability
     fn update(&self, token_pair: (Option<String>, Option<String>));
 
@@ -80,7 +80,10 @@ use http::Response;
 use util::http::SetResponse;
 
 #[cfg(feature = "server")]
-impl<T> TokenBehavior for RwLock<&mut Response<T>> {
+impl<T> TokenBehavior for RwLock<&mut Response<T>>
+where
+    T: Send + Sync,
+{
     fn update(&self, token_pair: (Option<String>, Option<String>)) {
         match token_pair {
             (Some(access_token), Some(refresh_token)) => {
@@ -107,7 +110,10 @@ impl<T> TokenBehavior for RwLock<&mut Response<T>> {
 }
 
 #[cfg(feature = "server")]
-impl<'a, T> From<&'a RwLock<&'a mut Response<T>>> for Token<'a> {
+impl<'a, T> From<&'a RwLock<&'a mut Response<T>>> for Token<'a>
+where
+    T: Send + Sync,
+{
     fn from(x: &'a RwLock<&'a mut Response<T>>) -> Self {
         Self::Store(x)
     }
