@@ -72,7 +72,7 @@ impl<'a> From<&'a dyn TokenBehavior> for Token<'a> {
 }
 
 #[cfg(feature = "server")]
-use std::cell::RefCell;
+use parking_lot::RwLock;
 
 #[cfg(feature = "server")]
 use http::Response;
@@ -80,12 +80,12 @@ use http::Response;
 use util::http::SetResponse;
 
 #[cfg(feature = "server")]
-impl<T> TokenBehavior for RefCell<&mut Response<T>> {
+impl<T> TokenBehavior for RwLock<&mut Response<T>> {
     fn update(&self, token_pair: (Option<String>, Option<String>)) {
         match token_pair {
             (Some(access_token), Some(refresh_token)) => {
                 {
-                    let mut resp = self.borrow_mut();
+                    let mut resp = self.write();
 
                     resp.set_header(MADOME_ACCESS_TOKEN, access_token).unwrap();
                     resp.set_header(MADOME_REFRESH_TOKEN, refresh_token)
@@ -101,14 +101,14 @@ impl<T> TokenBehavior for RefCell<&mut Response<T>> {
 
     // token pair 쿠키를 직접 수동으로 집어넣어줘야함
     fn as_cookie(&self) -> Cookie {
-        let resp = self.borrow();
+        let resp = self.read();
         Cookie::from(resp.headers())
     }
 }
 
 #[cfg(feature = "server")]
-impl<'a, T> From<&'a RefCell<&'a mut Response<T>>> for Token<'a> {
-    fn from(x: &'a RefCell<&'a mut Response<T>>) -> Self {
+impl<'a, T> From<&'a RwLock<&'a mut Response<T>>> for Token<'a> {
+    fn from(x: &'a RwLock<&'a mut Response<T>>) -> Self {
         Self::Store(x)
     }
 }
