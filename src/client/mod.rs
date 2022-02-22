@@ -56,7 +56,7 @@ macro_rules! impl_madome_client {
 
 impl_madome_client![user, auth];
 
-#[cfg(test)]
+#[cfg(feature = "e2e")]
 pub mod tests {
     use std::{convert::Infallible, fmt::Debug, net::SocketAddr, sync::Arc, time::Duration};
 

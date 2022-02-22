@@ -3,6 +3,7 @@ use util::http::{Cookie, SetCookie};
 use crate::api::header::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
 
 pub trait TokenBehavior {
+    /// use interior-mutability
     fn update(&self, token_pair: (Option<String>, Option<String>));
 
     fn as_cookie(&self) -> Cookie {

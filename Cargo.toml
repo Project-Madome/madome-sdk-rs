@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
+e2e = []
 server = []
 client = []
 
@@ -24,7 +25,7 @@ serde_qs = "0.8"
 madome-sdk-macros = { path = "./madome-sdk-macros" }
 bytes = "1.1.0"
 
-[dev-dependencies]
+# for e2e feature
 tokio = { version = "1.17", features = ["macros"] }
 hyper = { version = "0.14", features = ["server"] }
-simple_logger = "2.1"
+# simple_logger = "2.1"
