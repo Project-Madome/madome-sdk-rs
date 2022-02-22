@@ -2,6 +2,8 @@ pub mod def;
 pub mod error;
 pub mod model;
 
+pub use error::Error;
+
 /* use http::{header, Method, StatusCode};
 use reqwest::Client;
 use util::http::{Cookie, SetCookie};
