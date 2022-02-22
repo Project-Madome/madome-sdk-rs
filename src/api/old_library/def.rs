@@ -8,7 +8,7 @@ define_request! {
     (GET, "/v1/books"),
     Querystring,
     [
-        r#type: Option<payload::BookType>,
+        book_type: Option<payload::BookType>,
         per_page: usize,
         page: usize,
         sort: Option<payload::BookSortBy>,
@@ -25,6 +25,24 @@ define_request! {
     Querystring,
     [
         ids: Vec<u32>
+    ],
+    [],
+    [],
+    StatusCode::OK => Vec<model::Book>
+}
+
+define_request! {
+    old_library,
+    get_books_by_metadata,
+    (GET, "/v1/books"),
+    Querystring,
+    [
+        book_type: Option<payload::BookType>,
+        metadata_type: String,
+        metadata_value: String,
+        per_page: usize,
+        page: usize,
+        sort: Option<payload::BookSortByWithoutRandom>,
     ],
     [],
     [],

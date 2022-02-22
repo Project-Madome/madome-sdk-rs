@@ -20,3 +20,11 @@ pub enum BookSortBy {
     #[serde(rename = "random")]
     Random,
 }
+
+#[derive(Debug, Serialize)]
+pub enum BookSortByWithoutRandom {
+    #[serde(rename = "created_desc")]
+    CreatedAtDesc,
+    #[serde(rename = "created_asc")]
+    CreatedAtAsc,
+}

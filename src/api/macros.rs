@@ -43,6 +43,7 @@ macro_rules! define_request {
         impl_namespace!($namespace, $fn, [$(($arg_id: $arg_ty)),*], $ret_ty);
 
         #[impl_into_args]
+        #[allow(clippy::too_many_arguments)]
         pub async fn $fn(base_url: impl Into<String>, token: impl Into<Token<'_>>, $($arg_id: $arg_ty),*) -> Result<$ret_ty, $crate::api::$namespace::error::Error> {
             $fn::execute(base_url.into(), token.into(), $($arg_id.into()),*).await
         }
@@ -110,6 +111,7 @@ macro_rules! define_request {
         define_request!(@def_qs [$($arg_id, $arg_ty),*]);
         define_request!(@def_json [$($arg_id, $arg_ty),*]);
 
+        #[allow(clippy::too_many_arguments)]
         pub async fn execute(base_url: String, token: Token<'_>, $($arg_id: $arg_ty),*) -> Result<$ret_ty, $crate::api::$namespace::error::Error> {
             let req = match $parameter_kind {
                 ParameterKind::Querystring => {
