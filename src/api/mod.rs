@@ -4,6 +4,7 @@ mod token;
 
 pub mod auth;
 pub mod header;
+pub mod old_library;
 pub mod user;
 
 pub use token::TokenBehavior;
