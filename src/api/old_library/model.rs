@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum BookType {
     Manga,
@@ -12,7 +12,7 @@ pub enum BookType {
     ArtistCg,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Book {
     pub id: u32,
     pub title: String,
