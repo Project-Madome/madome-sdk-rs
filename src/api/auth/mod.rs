@@ -2,6 +2,7 @@ pub mod def;
 pub mod error;
 pub mod model;
 
+pub use def::*;
 pub use error::Error;
 
 /* use http::{header, Method, StatusCode};
