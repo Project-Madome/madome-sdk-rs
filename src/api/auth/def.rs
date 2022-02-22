@@ -2,6 +2,18 @@ use crate::api::prelude::*;
 
 use super::model::UserId;
 
+pub fn check_internal(headers: &http::HeaderMap) -> Result<(), crate::api::auth::error::Error> {
+    let has_public = headers
+        .get(crate::api::header::MADOME_PUBLIC_ACCESS_HEADER)
+        .is_some();
+
+    if has_public {
+        Err(BaseError::PermissionDenied.into())
+    } else {
+        Ok(())
+    }
+}
+
 define_request! {
     auth,
     create_authcode,
