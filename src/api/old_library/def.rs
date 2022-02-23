@@ -4,6 +4,19 @@ use super::{model, payload};
 
 define_request! {
     old_library,
+    get_book,
+    (GET, "/v1/book"),
+    Querystring,
+    [
+        value: u32
+    ],
+    [],
+    [],
+    StatusCode::OK => model::Book
+}
+
+define_request! {
+    old_library,
     get_books,
     (GET, "/v1/books"),
     Querystring,

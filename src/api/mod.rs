@@ -108,7 +108,6 @@ mod http {
         F: Fn(Response) -> Fut,
         Fut: Future<Output = Result<T, E>>,
     {
-        #[cfg(feature = "client")]
         token.update(resp.headers());
 
         f(resp)
