@@ -2,7 +2,7 @@ use parking_lot::RwLock;
 use util::http::Cookie;
 
 use crate::api::{
-    header::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN},
+    cookie::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN},
     TokenBehavior,
 };
 

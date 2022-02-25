@@ -1,6 +1,6 @@
 use util::http::{Cookie, SetCookie};
 
-use crate::api::header::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
+use crate::api::cookie::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
 
 pub trait TokenBehavior: Send + Sync {
     /// use interior-mutability
@@ -13,6 +13,7 @@ pub trait TokenBehavior: Send + Sync {
     }
 }
 
+#[derive(Clone)]
 pub enum Token<'a> {
     Origin((String, String)),
     Store(&'a dyn TokenBehavior),
@@ -80,10 +81,11 @@ mod server {
 
     use util::http::{Cookie, SetResponse};
 
-    use crate::api::header::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
+    use crate::api::cookie::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
 
     use super::{Token, TokenBehavior};
 
+    // server 쪽에서 수동으로 유저 토큰을 push 해줘야함
     impl TokenBehavior for RwLock<&mut Response<Body>> {
         fn update(&self, token_pair: (Option<String>, Option<String>)) {
             match token_pair {
@@ -103,7 +105,6 @@ mod server {
             }
         }
 
-        // token pair 쿠키를 직접 수동으로 집어넣어줘야함
         fn as_cookie(&self) -> Cookie {
             let resp = self.read();
             Cookie::from(resp.headers())
