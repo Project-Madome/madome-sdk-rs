@@ -1,5 +1,5 @@
 use parking_lot::RwLock;
-use util::http::Cookie;
+use util::http::{Cookie, SetCookie};
 
 use crate::api::{
     cookie::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN},
@@ -42,8 +42,13 @@ pub struct AuthStore {
 }
 
 impl TokenBehavior for AuthStore {
-    fn update(&self, token_pair: (Option<String>, Option<String>)) {
-        match token_pair {
+    fn update(&self, headers: &http::HeaderMap) {
+        let mut set_cookie = SetCookie::from_headers(headers);
+
+        let access = set_cookie.take(MADOME_ACCESS_TOKEN);
+        let refresh = set_cookie.take(MADOME_REFRESH_TOKEN);
+
+        match (access, refresh) {
             (Some(access), Some(refresh)) => {
                 {
                     let mut token = self.token.write();

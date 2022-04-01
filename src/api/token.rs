@@ -1,10 +1,10 @@
-use util::http::{Cookie, SetCookie};
+use util::http::Cookie;
 
 use crate::api::cookie::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
 
 pub trait TokenBehavior: Send + Sync {
     /// use interior-mutability
-    fn update(&self, token_pair: (Option<String>, Option<String>));
+    fn update(&self, headers: &http::HeaderMap);
 
     /// 요청 보낼때 헤더로 변환할 때 씀
     /// `let (header_key, header_value) = t.as_cookie().into();`
@@ -32,12 +32,13 @@ impl Token<'_> {
 
     pub fn update(&self, headers: &http::HeaderMap) {
         if let Self::Store(x) = self {
-            let mut set_cookie = SetCookie::from_headers(headers);
+            /* let mut set_cookie = SetCookie::from_headers(headers);
 
             let access_token = set_cookie.take(MADOME_ACCESS_TOKEN);
-            let refresh_token = set_cookie.take(MADOME_REFRESH_TOKEN);
+            let refresh_token = set_cookie.take(MADOME_REFRESH_TOKEN); */
 
-            x.update((access_token, refresh_token));
+            // x.update((access_token, refresh_token));
+            x.update(headers);
         }
     }
 }
@@ -81,27 +82,26 @@ mod server {
 
     use util::http::{Cookie, SetResponse};
 
-    use crate::api::cookie::{MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN};
-
     use super::{Token, TokenBehavior};
 
     // server 쪽에서 수동으로 유저 토큰을 push 해줘야함
     impl TokenBehavior for RwLock<&mut Response<Body>> {
-        fn update(&self, token_pair: (Option<String>, Option<String>)) {
+        fn update(&self, headers: &http::HeaderMap) {
+            let token_pair = headers.get(http::header::SET_COOKIE);
+
             match token_pair {
-                (Some(access_token), Some(refresh_token)) => {
+                Some(token_pair) => {
                     {
                         let mut resp = self.write();
 
-                        resp.set_header(MADOME_ACCESS_TOKEN, access_token).unwrap();
-                        resp.set_header(MADOME_REFRESH_TOKEN, refresh_token)
+                        resp.set_header(http::header::SET_COOKIE, token_pair)
                             .unwrap();
 
-                        // droped here
+                        // dropped here
                     }
                     log::debug!("token updated = true");
                 }
-                _ => log::debug!("token updated = false"),
+                None => log::debug!("token updated = false"),
             }
         }
 
