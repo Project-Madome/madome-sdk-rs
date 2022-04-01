@@ -1,3 +1,4 @@
+use either::Either;
 use uuid::Uuid;
 
 use crate::api::prelude::*;
@@ -20,6 +21,24 @@ define_request! {
         }
     ],
     StatusCode::OK => ()
+}
+
+define_request! {
+    user,
+    get_user,
+    (GET, "/users/:user_id_or_email"),
+    Path,
+    [user_id_or_email: Either<Uuid, String>],
+    [
+        #[error("Not found user")]
+        NotFoundUser,
+    ],
+    [
+        StatusCode::NOT_FOUND => |_resp| async {
+            Error::NotFoundUser
+        }
+    ],
+    StatusCode::OK => model::User
 }
 
 define_request! {

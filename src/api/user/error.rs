@@ -9,6 +9,11 @@ extend_error![
         def::get_me::Error
     ),
     #[error("{0}")]
+    GetUser(
+        #[from]
+        def::get_user::Error
+    ),
+    #[error("{0}")]
     CreateUser(
         #[from]
         def::create_user::Error

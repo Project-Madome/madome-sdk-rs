@@ -45,6 +45,7 @@ mod http {
     use super::token::Token;
 
     pub(crate) enum ParameterKind {
+        Path,
         Querystring,
         Json,
         Nothing,
@@ -61,7 +62,7 @@ mod http {
     where
         T: Serialize,
     {
-        let (key, value) = token.as_cookie().into();
+        let (cookie, token) = token.as_cookie().into();
 
         let url = format!("{base_url}{path}");
 
@@ -73,6 +74,7 @@ mod http {
                 log::debug!("serialized_parameter = {qs}");
                 req.request(method, format!("{url}?{qs}"))
             }
+
             ParameterKind::Json => {
                 let json = serde_json::to_vec(parameter.as_ref().unwrap())
                     .map_err(BaseError::JsonSerialize)?;
@@ -87,9 +89,10 @@ mod http {
                     .header(header::CONTENT_TYPE, "application/json")
                     .body(json)
             }
-            ParameterKind::Nothing => req.request(method, url),
+
+            ParameterKind::Path | ParameterKind::Nothing => req.request(method, url),
         }
-        .header(key, value);
+        .header(cookie, token);
 
         #[cfg(test)]
         {

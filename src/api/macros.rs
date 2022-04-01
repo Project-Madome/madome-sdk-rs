@@ -99,6 +99,21 @@ macro_rules! define_request {
         }
     };
 
+    (@def_path [$($arg_id:ident, $arg_ty:ty),*$(,)?]) => {
+        #[derive(Debug, ::serde::Serialize)]
+        pub(crate) struct PathParameters {
+            $(
+                $arg_id: $arg_ty,
+            )*
+        }
+
+        pub(crate) fn path_parameters($($arg_id: $arg_ty),*) -> PathParameters {
+            PathParameters {
+                $($arg_id,)*
+            }
+        }
+    };
+
     (@def_fn
         $namespace:ident,
         $method:expr,
@@ -110,6 +125,7 @@ macro_rules! define_request {
         $ret_ty:ty) => {
         define_request!(@def_qs [$($arg_id, $arg_ty),*]);
         define_request!(@def_json [$($arg_id, $arg_ty),*]);
+        define_request!(@def_path [$($arg_id, $arg_ty),*]);
 
         #[allow(clippy::too_many_arguments)]
         pub async fn execute(base_url: String, token: Token<'_>, $($arg_id: $arg_ty),*) -> Result<$ret_ty, $crate::api::$namespace::error::Error> {
@@ -123,6 +139,11 @@ macro_rules! define_request {
                     let parameter = json_parameters($($arg_id,)*);
                     ::log::debug!("json_parameter = {parameter:?}");
                     request($method, &base_url, $path, &token, $parameter_kind, Some(parameter))
+                },
+                ParameterKind::Path => {
+                    let parameter = path_parameters($($arg_id,)*);
+                    let path = ::serde_path::to_string($path, &parameter).unwrap();
+                    request($method, &base_url, &path, &token, $parameter_kind, None::<()>)
                 },
                 ParameterKind::Nothing => {
                     request($method, &base_url, $path, &token, $parameter_kind, None::<()>)
