@@ -54,7 +54,7 @@ macro_rules! impl_madome_client {
     };
 }
 
-impl_madome_client![user, auth, old_library];
+impl_madome_client![user, auth, library];
 
 #[cfg(feature = "e2e")]
 pub mod tests {

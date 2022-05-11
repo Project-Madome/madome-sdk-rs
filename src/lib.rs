@@ -13,3 +13,10 @@ fn abcd(x: impl Into<String>) {}
 fn aa() {
     abcd("".to_string())
 } */
+
+/* use madome_sdk_macros::ret_ty_or_unit;
+
+#[ret_ty_or_unit]
+async fn efg() -> bytes::Bytes {
+    Default::default()
+} */

@@ -43,6 +43,13 @@ impl Token<'_> {
     }
 }
 
+impl Default for Token<'_> {
+    fn default() -> Self {
+        let x: String = Default::default();
+        Token::Origin((x.clone(), x))
+    }
+}
+
 impl From<String> for Token<'_> {
     fn from(access: String) -> Self {
         Self::Origin((access, String::new()))

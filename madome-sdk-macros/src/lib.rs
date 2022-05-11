@@ -23,6 +23,33 @@ fn is_num_ty(ty: &Type) -> bool {
     // matches!(ty, Type::Path(path) if is_num(&path.clone().into_token_stream().to_string()))
 }
 
+#[allow(dead_code)]
+fn is_bytes_ty(ty: &Type) -> bool {
+    // println!("{}", ty.clone().into_token_stream().to_string());
+
+    match ty {
+        // bytes::Bytes
+        Type::Path(ty_path) => {
+            // println!("{}", ty_path.clone().into_token_stream().to_string());
+            // println!("{}", ty_path.path.clone().into_token_stream().to_string());
+
+            // Bytes
+            let last_segment = ty_path
+                .path
+                .segments
+                .clone()
+                .pop()
+                .into_token_stream()
+                .to_string();
+
+            last_segment == "Bytes"
+
+            // println!("{}", last);
+        }
+        _ => false,
+    }
+}
+
 fn is_impl_into(ty: &Type) -> bool {
     match ty {
         Type::ImplTrait(impl_trait) => impl_trait.bounds.iter().any(|x| {
@@ -133,8 +160,8 @@ fn unwrap_result(ty: &Type) -> Option<(Type, Type)> {
                                 _ => None,
                             });
 
-                            let ok_ty = args.next().unwrap();
-                            let err_ty = args.next().unwrap();
+                            let ok_ty = args.next().expect("ok_ty::unwrap");
+                            let err_ty = args.next().expect("err_ty::unwrap");
 
                             (ok_ty, err_ty)
                         }
@@ -154,10 +181,18 @@ fn unwrap_result(ty: &Type) -> Option<(Type, Type)> {
 }
 
 fn is_result_unit_ty(ty: &Type) -> bool {
-    let (ok_ty, _err_ty) = unwrap_result(ty).unwrap();
-
-    is_unit_ty(&ok_ty)
+    match unwrap_result(ty) /* .expect("unwrap_result::unwrap"); */ {
+        Some((ok_ty, _err_ty)) => is_unit_ty(&ok_ty),
+        None => false,
+    }
 }
+
+/* fn is_result_bytes_ty(ty: &Type) -> bool {
+    match unwrap_result(ty) {
+        Some((ok_ty, ..)) => is_bytes_ty(&ok_ty),
+        None => false,
+    }
+} */
 
 #[proc_macro_attribute]
 pub fn ret_ty_or_unit(_attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -175,23 +210,124 @@ pub fn ret_ty_or_unit(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     */
 
-    match Item::parse.parse(item).unwrap() {
+    enum Wrap {
+        Result(Ty),
+        Origin(Ty),
+    }
+
+    enum Ty {
+        // Bytes(Box<Type>),
+        Unit,
+        Other,
+    }
+
+    match Item::parse.parse(item).expect("Item::parse.parse::unwrap") {
         Item::Fn(item_fn) => {
             // println!("{}", item_fn.clone().into_token_stream().to_string());
 
             let ret = &item_fn.sig.output;
 
-            let (is_unit, is_result_unit) = match ret {
-                ReturnType::Default => (true, false),
-                ReturnType::Type(_r, ty) => (is_unit_ty(&ty), is_result_unit_ty(&ty)),
+            let x = match ret {
+                ReturnType::Default => Wrap::Origin(Ty::Unit),
+                ReturnType::Type(_r, ty) => {
+                    if is_unit_ty(&ty) {
+                        Wrap::Origin(Ty::Unit)
+                    } else if is_result_unit_ty(&ty) {
+                        Wrap::Result(Ty::Unit)
+                    /* } else if is_bytes_ty(&ty) {
+                        Wrap::Origin(Ty::Bytes(ty.clone()))
+                    } else if is_result_bytes_ty(&ty) {
+                        Wrap::Result(Ty::Bytes(ty.clone())) */
+                    } else if unwrap_result(&ty).is_some() {
+                        Wrap::Result(Ty::Other)
+                    } else {
+                        Wrap::Origin(Ty::Other)
+                    }
+                } /* (
+                      is_unit_ty(&ty),
+                      is_result_unit_ty(&ty),
+                      is_bytes_ty(&ty),
+                      is_resul,
+                  ) */
             };
 
-            // TODO: is_option_unit
-            let block = match (is_unit, is_result_unit) {
-                (true, _) => Box::new(Block {
+            /* fn aaa(ty: &Ty) -> Expr {
+                match ty {
+                    Ty::Unit => ok_expr_path(PathArguments::None),
+                    Ty::Bytes(ty) => ok_expr_path(PathArguments::Parenthesized(
+                        ParenthesizedGenericArguments {
+                            paren_token: token::Paren::default(),
+                            inputs: Punctuated::from_iter([ty.clone()]),
+                            output: ReturnType::Default,
+                        },
+                    )),
+                }
+            } */
+
+            let block = match x {
+                Wrap::Origin(Ty::Unit) => Box::new(Block {
                     stmts: vec![],
                     brace_token: token::Brace::default(),
                 }),
+
+                Wrap::Result(Ty::Unit) => Box::new(Block {
+                    stmts: vec![Stmt::Expr(Expr::Call(ExprCall {
+                        attrs: Vec::new(),
+                        func: Box::new(ok_expr_path()),
+                        paren_token: token::Paren::default(),
+                        args: Punctuated::from_iter([Expr::Tuple(ExprTuple {
+                            attrs: Vec::new(),
+                            paren_token: token::Paren::default(),
+                            elems: Punctuated::default(),
+                        })]),
+                    }))],
+                    brace_token: token::Brace::default(),
+                }),
+
+                Wrap::Origin(Ty::Other) | Wrap::Result(Ty::Other) => item_fn.block.clone(),
+                /* Wrap::Origin(Ty::Bytes(ty)) => Box::new(Block {
+                    stmts: vec![Stmt::Expr(Expr::Path(ExprPath {
+                        attrs: vec![],
+                        qself: None,
+                        path: Path {
+                            leading_colon: None,
+                            segments: Punctuated::from_iter([PathSegment {
+                                ident: Ident::new("bytes", Span::call_site()),
+                                arguments: PathArguments::None,
+                            }]),
+                        },
+                    }))],
+                    brace_token: token::Brace::default(),
+                }), */
+
+                /* Wrap::Result(ty) => Box::new(Block {
+                    stmts: vec![Stmt::Expr(Expr::Call(ExprCall {
+                        attrs: Vec::new(),
+                        func: Box::new(ok_expr_path()),
+                        paren_token: token::Paren::default(),
+                        args: Punctuated::from_iter([Expr::Tuple(ExprTuple {
+                            attrs: Vec::new(),
+                            paren_token: token::Paren::default(),
+                            elems: Punctuated::from_iter([Expr::Path(ExprPath {
+                                attrs: vec![],
+                                qself: None,
+                                path: Path {
+                                    leading_colon: None,
+                                    segments: Punctuated::from_iter([PathSegment {
+                                        ident: Ident::new("bytes", Span::call_site()),
+                                        arguments: PathArguments::None,
+                                    }]),
+                                },
+                            })]),
+                        })]),
+                    }))],
+                    brace_token: token::Brace::default(),
+                }), */
+            };
+
+            /* // TODO: is_option_unit
+            let block = match (is_unit, is_result_unit) {
+                (true, _) => ,
 
                 (_, true) => Box::new(Block {
                     stmts: vec![Stmt::Expr(Expr::Call(ExprCall {
@@ -207,7 +343,7 @@ pub fn ret_ty_or_unit(_attr: TokenStream, item: TokenStream) -> TokenStream {
                     brace_token: token::Brace::default(),
                 }),
                 _ => item_fn.block.clone(),
-            };
+            }; */
 
             let item_fn = ItemFn { block, ..item_fn };
 

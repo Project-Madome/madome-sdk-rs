@@ -5,7 +5,7 @@ mod token;
 pub mod auth;
 pub mod cookie;
 pub mod header;
-pub mod old_library;
+pub mod library;
 pub mod user;
 
 pub use error::BaseError;

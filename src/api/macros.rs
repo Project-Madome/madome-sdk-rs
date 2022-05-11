@@ -20,7 +20,7 @@ macro_rules! impl_namespace {
         impl $crate::client::$namespace<'_> {
             #[impl_into_args]
             pub async fn $fn(self, $($arg_id: $arg_ty),*) -> Result<$ret_ty, $crate::api::$namespace::error::Error> {
-                $fn(self.base_url.clone(), self.token, $($arg_id.into()),*).await
+                $fn(self.base_url, self.token, $($arg_id.into()),*).await
             }
         }
     };
@@ -37,7 +37,8 @@ macro_rules! define_request {
     [$($arg_id:ident: $arg_ty:ty),*$(,)?],
     [$($err_member:tt)*],
     [$($err_code:path => $err:expr),*$(,)?],
-    $ok_code:path => $ret_ty:ty) =>
+    $ok_code:path => $ret_ty:ty
+    $(, $return_mapper:expr)?) =>
         {
         #[cfg(feature = "client")]
         impl_namespace!($namespace, $fn, [$(($arg_id: $arg_ty)),*], $ret_ty);
@@ -63,7 +64,17 @@ macro_rules! define_request {
                 $($err_member)*
             }
 
-            define_request!(@def_fn $namespace, $method, $path, $parameter_kind, [$(($arg_id, $arg_ty)),*], [$($err_code => $err),*], $ok_code, $ret_ty);
+            define_request!(@def_fn
+                $namespace,
+                $method,
+                $path,
+                $parameter_kind,
+                [$(($arg_id, $arg_ty)),*],
+                [$($err_code => $err),*],
+                $ok_code,
+                $ret_ty,
+                $($return_mapper)?
+            );
         }
     };
 
@@ -122,7 +133,8 @@ macro_rules! define_request {
         [$(($arg_id:ident, $arg_ty:ty)),*$(,)?],
         [$($err_code:path => $err:expr),*$(,)?],
         $ok_code:path,
-        $ret_ty:ty) => {
+        $ret_ty:ty,
+        $($return_mapper:expr)?) => {
         define_request!(@def_qs [$($arg_id, $arg_ty),*]);
         define_request!(@def_json [$($arg_id, $arg_ty),*]);
         define_request!(@def_path [$($arg_id, $arg_ty),*]);
@@ -142,6 +154,7 @@ macro_rules! define_request {
                 },
                 ParameterKind::Path => {
                     let parameter = path_parameters($($arg_id,)*);
+                    ::log::debug!("path_parameter = {parameter:?}");
                     let path = ::serde_path::to_string($path, &parameter).unwrap();
                     request($method, &base_url, &path, &token, $parameter_kind, None::<()>)
                 },
@@ -173,10 +186,22 @@ macro_rules! define_request {
                                 ::log::debug!("{}", String::from_utf8(buf.to_vec()).unwrap());
                             }
 
-                            let deserialized = serde_json::from_slice(&buf)
-                                .map_err(BaseError::JsonDeserialize)?;
+                            #[allow(unused_mut)]
+                            let mut maybe_map_fn: Option<fn(::bytes::Bytes) -> Result<$ret_ty, BaseError>> = None;
 
-                            Ok(deserialized)
+                            $(
+                                maybe_map_fn.replace($return_mapper);
+                            )?
+
+                            match maybe_map_fn {
+                                Some(map_fn) => Ok(map_fn(buf)?),
+                                None => {
+                                    let deserialized = serde_json::from_slice(&buf)
+                                        .map_err(BaseError::JsonDeserialize)?;
+
+                                    Ok(deserialized)
+                                }
+                            }
                         }
 
                         Ok(deserialize(resp).await?)

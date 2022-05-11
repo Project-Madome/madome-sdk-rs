@@ -1,7 +1,7 @@
 pub struct MadomeBaseUrl {
     pub(crate) auth: String,
     pub(crate) user: String,
-    pub(crate) old_library: String,
+    pub(crate) library: String,
 }
 
 impl MadomeBaseUrl {
@@ -11,7 +11,7 @@ impl MadomeBaseUrl {
         Self {
             auth: base_url.clone(),
             user: base_url.clone(),
-            old_library: base_url,
+            library: base_url,
         }
     }
 
@@ -21,7 +21,7 @@ impl MadomeBaseUrl {
         Self {
             auth: base_url.clone(),
             user: base_url.clone(),
-            old_library: base_url,
+            library: base_url,
         }
     }
 
@@ -31,7 +31,7 @@ impl MadomeBaseUrl {
         Self {
             auth: base_url.clone(),
             user: base_url.clone(),
-            old_library: base_url,
+            library: base_url,
         }
     }
 
@@ -40,7 +40,7 @@ impl MadomeBaseUrl {
         Self {
             auth: "http://madome-auth:3112".to_string(),
             user: "http://madome-user:3112".to_string(),
-            old_library: "http://madome-library:3112".to_string(),
+            library: "http://madome-library:3112".to_string(),
         }
     }
 }
