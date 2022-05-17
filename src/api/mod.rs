@@ -103,6 +103,15 @@ mod http {
             }
         }
 
+        #[cfg(feature = "server")]
+        {
+            use super::header::MADOME_TAKE_ORIGIN_RESPONSE;
+
+            if true {
+                return Ok(req.header(MADOME_TAKE_ORIGIN_RESPONSE, "true"));
+            }
+        }
+
         Ok(req)
     }
 
