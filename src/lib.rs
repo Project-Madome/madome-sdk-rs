@@ -5,6 +5,8 @@ mod client;
 #[cfg(feature = "client")]
 pub use client::MadomeClient;
 
+pub use client::store::{AuthStore, TokenPair};
+
 /* use madome_sdk_macros::impl_into_args;
 
 #[impl_into_args]

@@ -1,3 +1,4 @@
+use http::HeaderMap;
 use parking_lot::RwLock;
 use util::http::{Cookie, SetCookie};
 
@@ -39,6 +40,26 @@ impl From<(&str, &str)> for AuthStore {
 #[derive(Default)]
 pub struct AuthStore {
     token: RwLock<Option<TokenPair>>,
+}
+
+impl AuthStore {
+    pub fn new(access_token: impl Into<String>, refresh_token: impl Into<String>) -> Self {
+        Self {
+            token: RwLock::new(Some((access_token.into(), refresh_token.into()))),
+        }
+    }
+}
+
+impl From<&HeaderMap> for AuthStore {
+    fn from(headers: &HeaderMap) -> Self {
+        let cookie = Cookie::from(headers);
+
+        let (access, refresh) = cookie
+            .get2(MADOME_ACCESS_TOKEN, MADOME_REFRESH_TOKEN)
+            .unwrap_or_default();
+
+        Self::new(access, refresh)
+    }
 }
 
 impl TokenBehavior for AuthStore {
