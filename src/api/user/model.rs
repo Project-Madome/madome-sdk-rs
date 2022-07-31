@@ -35,3 +35,13 @@ pub enum Notification {
         created_at: DateTime<Utc>,
     },
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum History {
+    Book {
+        book_id: u32,
+        created_at: DateTime<Utc>,
+        updated_at: DateTime<Utc>,
+    },
+}

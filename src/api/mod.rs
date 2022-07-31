@@ -20,8 +20,7 @@ pub(crate) mod prelude {
     pub(crate) use madome_sdk_macros::ret_ty_or_unit;
 
     pub(crate) use super::error::BaseError;
-    pub(crate) use super::http::ParameterKind;
-    pub(crate) use super::http::{request, response};
+    pub(crate) use super::http::{request, response, ParameterKind};
     pub(crate) use super::macros::*;
     pub(crate) use super::token::Token;
 
@@ -44,6 +43,19 @@ mod http {
     use super::error::BaseError;
     use super::token::Token;
 
+    /* pub(crate) enum NeedWrapping {
+        Yes,
+        No,
+    }
+
+    pub(crate) enum ParameterKind {
+        Path(NeedWrapping),
+        Querystring(NeedWrapping),
+        Json(NeedWrapping),
+        Nothing,
+    } */
+
+    #[allow(dead_code)]
     pub(crate) enum ParameterKind {
         Path,
         Querystring,

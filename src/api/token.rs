@@ -8,9 +8,7 @@ pub trait TokenBehavior: Send + Sync {
 
     /// 요청 보낼때 헤더로 변환할 때 씀
     /// `let (header_key, header_value) = t.as_cookie().into();`
-    fn as_cookie(&self) -> Cookie {
-        Default::default()
-    }
+    fn as_cookie(&self) -> Cookie;
 }
 
 #[derive(Clone)]

@@ -3,9 +3,9 @@ use uuid::Uuid;
 
 use crate::api::prelude::*;
 
-use super::{model, payload};
+use super::model;
 
-define_request! {
+/* define_request! {
     user,
     create_user,
     (POST, "/users"),
@@ -21,12 +21,12 @@ define_request! {
         }
     ],
     StatusCode::OK => ()
-}
+} */
 
 define_request! {
     user,
     get_user,
-    (GET, "/users/:user_id_or_email"),
+    (GET, "/_/users/:user_id_or_email"),
     Path,
     [user_id_or_email: Either<Uuid, String>],
     [
@@ -42,6 +42,42 @@ define_request! {
 }
 
 define_request! {
+    user,
+    get_likes,
+    (GET, "/_/users/:user_id/likes"),
+    Path,
+    [user_id: Uuid],
+    [
+        #[error("Not found user")]
+        NotFoundUser,
+    ],
+    [
+        StatusCode::NOT_FOUND => |_resp| async {
+            Error::NotFoundUser
+        }
+    ],
+    StatusCode::OK => Vec<model::Like>
+}
+
+define_request! {
+    user,
+    get_histories,
+    (GET, "/_/users/:user_id/histories"),
+    Path,
+    [user_id: Uuid],
+    [
+        #[error("Not found user")]
+        NotFoundUser,
+    ],
+    [
+        StatusCode::NOT_FOUND => |_resp| async {
+            Error::NotFoundUser
+        }
+    ],
+    StatusCode::OK => Vec<model::History>
+}
+
+/* define_request! {
     user,
     get_me,
     (GET, "/users/@me"),
@@ -124,3 +160,36 @@ define_request! {
     [],
     StatusCode::OK => Vec<model::Notification>
 }
+
+define_request! {
+    user,
+    get_histories,
+    (GET, "/users/@me/likes"),
+    Querystring,
+    [
+        kind: Option<payload::LikeKind>,
+        per_page: usize,
+        page: usize,
+        sort_by: Option<payload::LikeSortBy>],
+    [],
+    [],
+    StatusCode::OK => Vec<model::Like>
+}
+
+define_request! {
+    user,
+    create_or_update_history,
+    (POST, "/users/@me/likes"),
+    Json,
+    [like: payload::Like],
+    [
+        #[error("Already Exists History")]
+        AlreadyExistsHistory
+    ],
+    [
+        StatusCode::CONFLICT => |_resp: Response| async {
+            Error::AlreadyExistsHistory
+        }
+    ],
+    StatusCode::CREATED => ()
+} */
