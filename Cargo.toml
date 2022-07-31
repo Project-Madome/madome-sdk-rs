@@ -17,7 +17,7 @@ serde_json = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 thiserror = "1.0"
 http = "0.2"
-uuid = { version = "0.8", features = ["serde"] }
+uuid = { version = "1", features = ["serde"] }
 util = { git = "https://github.com/syrflover/util-rs", tag = "0.3.2" }
 parking_lot = "0.12"
 log = "0.4"
