@@ -64,10 +64,10 @@ define_request! {
 
 define_request! {
     auth,
-    check_and_refresh_token_pair,
+    refresh_token_pair,
     (PATCH, "/auth/token"),
-    Querystring,
-    [role: Option<u8>],
+    Nothing,
+    [],
     [],
     [],
     StatusCode::OK => UserId
