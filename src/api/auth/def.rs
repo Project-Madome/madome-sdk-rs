@@ -70,5 +70,5 @@ define_request! {
     [],
     [],
     [],
-    StatusCode::OK => UserId
+    StatusCode::OK => ()
 }
